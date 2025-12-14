@@ -90,7 +90,7 @@
 
 <!-- Result -->
 <div class="card result">
-  <div class="label">Commission Check (pre-tax)</div>
+  <div class="label">Pay Status (pre-tax)</div>
   <div class="big" id="check">$0</div>
   <div class="divider"></div>
   <div class="row">
@@ -203,7 +203,11 @@
     setText("unitsDisplay", u);
     setText("tierText", r.t.tier);
     setText("rateText", fmt(r.t.rate));
-    setText("check", fmt(r.check));
+    if (r.check < 0) {
+  setText("check", "Draw balance remaining: " + fmt(Math.abs(r.check)));
+} else {
+  setText("check", "Commission check: " + fmt(r.check));
+}
     setText("base", fmt(r.base));
     setText("bonus", fmt(r.bonus));
     setText("draw", fmt(MONTHLY_DRAW));
