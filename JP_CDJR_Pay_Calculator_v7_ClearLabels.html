@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JP CDJR Pay Calculator</title>
+  <style>
+    :root{
+      --border:#e6e6e6;
+      --muted:#6b6b6b;
+      --card:#ffffff;
+      --shadow:0 1px 12px rgba(0,0,0,.06);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:#f6f6f7;
+      color:#111;
+    }
+    .wrap{max-width:760px;margin:0 auto;padding:18px}
+    h1{font-size:18px;margin:0}
+    .sub{font-size:12px;color:var(--muted);margin-top:6px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-top:14px;
+    }
+    .row{display:flex;gap:14px;align-items:center}
+    .row.wrapRow{flex-wrap:wrap}
+    .sp{flex:1}
+    .label{font-size:12px;color:var(--muted)}
+    .big{font-size:34px;font-weight:850;line-height:1.05;margin-top:6px}
+    .mid{font-size:18px;font-weight:750;margin-top:6px}
+    .divider{height:1px;background:#efefef;margin:14px 0}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:12px;color:#111;background:#fff;
+    }
+    .btn{
+      appearance:none;border:1px solid var(--border);
+      background:#fff;border-radius:14px;
+      padding:12px 14px;font-weight:750;font-size:18px;
+      width:56px;height:56px;
+    }
+    .btn:active{transform:scale(.98)}
+    input[type="number"]{
+      width:100%;
+      padding:14px 14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      font-size:18px;
+      background:#fff;
+    }
+    input[readonly]{background:#f2f2f2}
+    .mono{font-variant-numeric:tabular-nums}
+    .muted{color:var(--muted);font-size:12px}
+    .checkboxRow{display:flex;gap:10px;align-items:center}
+    .checkboxRow input{width:18px;height:18px}
+    .goalCard{border:1px dashed #d7d7d7;border-radius:16px;padding:12px;margin-top:10px;background:#fafafa}
+    .goalTitle{font-size:12px;color:var(--muted)}
+    .goalValue{font-size:22px;font-weight:850;margin-top:6px}
+    .goalMeta{font-size:12px;color:#333;margin-top:6px}
+    .footer{margin:18px 0 6px;color:var(--muted);font-size:12px;text-align:center}
+    .smallBtn{
+      border:1px solid var(--border);background:#fff;border-radius:12px;
+      padding:10px 12px;font-size:12px;font-weight:750;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>JP CDJR Pay Calculator</h1>
+      <div class="sub">Draw + commissions + bonuses • Saves automatically on your phone</div>
+      <div class="divider"></div>
+      <div class="row wrapRow">
+        <div class="pill mono" id="monthPill">Month: —</div>
+        <div class="pill">Weekly draw: <span class="mono">$650</span></div>
+        <div class="pill">Monthly draw: <span class="mono" id="monthlyDrawPill">$2,600</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Cars Sold (this month)</div>
+      <div class="big mono" id="unitsDisplay">0</div>
+      <div class="muted">Saved automatically.</div>
+      <div class="divider"></div>
+
+      <div class="row">
+        <button class="btn" onclick="changeUnits(-1)" aria-label="minus">−</button>
+        <div class="sp">
+          <input id="unitsInput" type="number" readonly value="0" />
+        </div>
+        <button class="btn" onclick="changeUnits(1)" aria-label="plus">+</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <div class="sp">
+          <div class="label">Tier (retro to 1)</div>
+          <div class="mid mono" id="tierText">0–8</div>
+        </div>
+        <div style="text-align:right">
+          <div class="label">Pay / Car</div>
+          <div class="mid mono" id="rateText">$150</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="row">
+        <button class="smallBtn" onclick="resetNow()">Reset to 0</button>
+        <div class="muted">Use only if you entered the wrong number.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label class="checkboxRow">
+        <input id="som" type="checkbox" />
+        <div><b>Salesperson of the Month</b> (+<span class="mono">$750</span>)</div>
+      </label>
+    </div>
+
+    <div class="card result">
+      <div class="label">Payout Status (pre-tax)</div>
+      <div class="big mono" id="check">$0</div>
+
+      <div class="divider"></div>
+      <div class="row wrapRow">
+        <div class="sp">
+          <div class="label">Base Commission</div>
+          <div class="mid mono" id="base">$0</div>
+        </div>
+        <div class="sp">
+          <div class="label">Bonuses</div>
+          <div class="mid mono" id="bonus">$0</div>
+        </div>
+        <div class="sp">
+          <div class="label">Monthly Draw</div>
+          <div class="mid mono" id="draw">$2,600</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="row wrapRow">
+        <div class="sp">
+          <div class="label">Total commission earned (before draw)</div>
+          <div class="sub">Commissions + bonuses earned this month. Draw is paid separately.</div>
+          <div class="mid mono" id="grandTotal">$0</div>
+        </div>
+        <div class="sp">
+          <div class="label">Cars until draw cleared</div>
+          <div class="mid mono" id="carsToClear">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label"><b>Goal Mode</b></div>
+      <div class="sub">One box • Saved automatically</div>
+      <div style="margin-top:10px;">
+        <input id="goalInput" type="number" inputmode="numeric" placeholder="Type your goal (ex: 16)" />
+      </div>
+      <div id="goalWrap" class="goalCard" style="display:none"></div>
+    </div>
+
+    <div class="footer">Tip: Share → Add to Home Screen</div>
+  </div>
+
+<script>
+  const WEEKLY_DRAW = 650;
+  const WEEKS = 4;
+  const MONTHLY_DRAW = WEEKLY_DRAW * WEEKS;
+
+  const LS_UNITS = "jp_cdjr_units_v1";
+  const LS_MONTH = "jp_cdjr_units_month_v1";
+  const LS_GOAL  = "jp_cdjr_goal_v1";
+  const LS_SOM   = "jp_cdjr_som_v1";
+
+  const fmt = (n) => {
+    const sign = n < 0 ? "-" : "";
+    const v = Math.abs(Math.round(n));
+    return sign + "$" + v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const monthKey = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    return `${y}-${m}`;
+  };
+
+  const monthLabel = (k) => {
+    const [y,m] = k.split("-");
+    const names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${names[(Number(m)||1)-1]} ${y}`;
+  };
+
+  function setText(id, txt){
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  }
+
+  function rateForUnits(u){
+    if (u <= 8) return 150;
+    if (u <= 12) return 225;
+    if (u <= 15) return 275;
+    if (u <= 18) return 325;
+    if (u <= 21) return 425;
+    return 450;
+  }
+
+  function tierLabel(u){
+    if (u <= 8) return "0–8";
+    if (u <= 12) return "9–12";
+    if (u <= 15) return "13–15";
+    if (u <= 18) return "16–18";
+    if (u <= 21) return "19–21";
+    return "22+";
+  }
+
+  function bonusForUnits(u){
+    let b = 0;
+    if (u >= 12 && u <= 16) b += 2000;
+    else if (u >= 17 && u <= 20) b += 2800;
+    else if (u >= 21) b += 3600;
+    if (document.getElementById("som").checked) b += 750;
+    return b;
+  }
+
+  function calc(u){
+    const rate = rateForUnits(u);
+    const base = u * rate;
+    const bonus = bonusForUnits(u);
+    const earned = base + bonus;
+    const check = earned - MONTHLY_DRAW;
+    return {u, rate, base, bonus, earned, check};
+  }
+
+  function breakevenUnits(){
+    for (let u = 0; u <= 60; u++){
+      if (calc(u).check >= 0) return u;
+    }
+    return 60;
+  }
+
+  function loadUnitsWithMonthlyReset(){
+    const current = monthKey();
+    const savedMonth = localStorage.getItem(LS_MONTH);
+    if (savedMonth !== current){
+      localStorage.setItem(LS_MONTH, current);
+      localStorage.setItem(LS_UNITS, "0");
+      return 0;
+    }
+    const raw = localStorage.getItem(LS_UNITS);
+    const u = Number(raw || 0);
+    return Number.isFinite(u) ? Math.max(0, Math.floor(u)) : 0;
+  }
+
+  function saveUnits(u){
+    localStorage.setItem(LS_UNITS, String(u));
+    localStorage.setItem(LS_MONTH, monthKey());
+  }
+
+  function loadGoal(){
+    try{
+      const g = localStorage.getItem(LS_GOAL);
+      if (g !== null && g !== "") document.getElementById("goalInput").value = g;
+    }catch(e){}
+  }
+
+  function saveGoal(v){
+    try{ localStorage.setItem(LS_GOAL, v); }catch(e){}
+  }
+
+  function loadSom(){
+    try{
+      const v = localStorage.getItem(LS_SOM);
+      document.getElementById("som").checked = (v === "1");
+    }catch(e){}
+  }
+
+  function saveSom(){
+    try{ localStorage.setItem(LS_SOM, document.getElementById("som").checked ? "1":"0"); }catch(e){}
+  }
+
+  function renderMain(){
+    const u = Number(document.getElementById("unitsInput").value || 0);
+    const r = calc(u);
+
+    setText("unitsDisplay", String(u));
+    setText("tierText", tierLabel(u));
+    setText("rateText", fmt(r.rate));
+
+    if (r.check < 0){
+      setText("check", "Draw not cleared (remaining): " + fmt(Math.abs(r.check)));
+    } else {
+      setText("check", "Remaining payout (after draw): " + fmt(r.check));
+    }
+
+    setText("base", fmt(r.base));
+    setText("bonus", fmt(r.bonus));
+    setText("draw", fmt(MONTHLY_DRAW));
+
+    setText("grandTotal", fmt(r.earned));
+    const be = breakevenUnits();
+    setText("carsToClear", u >= be ? "Draw cleared ✅" : String(be - u));
+  }
+
+  function renderGoal(){
+    const wrap = document.getElementById("goalWrap");
+    wrap.innerHTML = "";
+    const raw = document.getElementById("goalInput").value;
+    if (raw === "" || raw === null){
+      wrap.style.display = "none";
+      return;
+    }
+    const u = Number(raw);
+    if (!Number.isFinite(u) || u < 0){
+      wrap.style.display = "none";
+      return;
+    }
+    const uu = Math.floor(u);
+    const r = calc(uu);
+    wrap.style.display = "block";
+    const tier = tierLabel(uu);
+    wrap.innerHTML =
+      `<div class="goalTitle">Your Goal</div>
+       <div class="goalValue mono">${uu} units</div>
+       <div class="goalMeta">Tier: ${tier} @ ${fmt(r.rate)}/unit</div>
+       <div class="goalMeta">Grand Total: <b>${fmt(r.earned)}</b></div>
+       <div class="goalMeta">${r.check < 0 ? "Draw remaining: <b>"+fmt(Math.abs(r.check))+"</b>" : "Commission check: <b>"+fmt(r.check)+"</b>"}</div>`;
+  }
+
+  window.changeUnits = function(delta){
+    const input = document.getElementById("unitsInput");
+    const curr = Number(input.value || 0);
+    const next = Math.max(0, Math.floor(curr + delta));
+    input.value = next;
+    saveUnits(next);
+    renderMain();
+    renderGoal();
+  };
+
+  window.resetNow = function(){
+    const input = document.getElementById("unitsInput");
+    input.value = 0;
+    saveUnits(0);
+    renderMain();
+    renderGoal();
+  };
+
+  (function init(){
+    const m = monthKey();
+    setText("monthPill", "Month: " + monthLabel(m));
+    setText("monthlyDrawPill", fmt(MONTHLY_DRAW));
+
+    const u = loadUnitsWithMonthlyReset();
+    document.getElementById("unitsInput").value = u;
+
+    loadGoal();
+    loadSom();
+
+    document.getElementById("goalInput").addEventListener("input", (e)=>{
+      saveGoal(e.target.value);
+      renderGoal();
+    });
+
+    document.getElementById("som").addEventListener("change", ()=>{
+      saveSom();
+      renderMain();
+      renderGoal();
+    });
+
+    renderMain();
+    renderGoal();
+  })();
+</script>
+</body>
+</html>
