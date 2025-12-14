@@ -109,6 +109,18 @@
   </div>
 </div>
 
+<div class="divider"></div>
+<div class="row">
+  <div>
+    <div class="label">Grand Total (this month)</div>
+    <div class="mid" id="grandTotal">$0</div>
+  </div>
+  <div>
+    <div class="label">Cars to clear draw</div>
+    <div class="mid" id="carsToClear">0</div>
+  </div>
+</div>
+
 <!-- Goal Mode -->
 <div class="card">
   <div class="label"><b>Goal Mode</b></div>
@@ -139,6 +151,13 @@
     const m = String(d.getMonth()+1).padStart(2,"0");
     return `${y}-${m}`;
   };
+
+function breakevenUnits(){
+  for (let u = 0; u <= 60; u++){
+    if (calc(u).check >= 0) return u;
+  }
+  return 60;
+}
 
   function monthLabel(k){
     // k: YYYY-MM
@@ -200,6 +219,10 @@
   function renderMain(){
     const u = Number(document.getElementById("unitsInput").value || 0);
     const r = calc(u);
+    setText("grandTotal", fmt(r.base + r.bonus));
+
+const be = breakevenUnits();
+setText("carsToClear", u >= be ? "Draw cleared ✅" : String(be - u));
     setText("unitsDisplay", u);
     setText("tierText", r.t.tier);
     setText("rateText", fmt(r.t.rate));
